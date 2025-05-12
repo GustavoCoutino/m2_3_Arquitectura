@@ -3,6 +3,10 @@
 #include <memory>
 #include <vector>
 #include <iomanip>
+#include <algorithm>
+#include <sstream>
+#include <vector>
+#include <algorithm>
 #include "./BebidaBase/BebidaBase.h"
 #include "./Decoradores/MochaCremaDecorador.h"
 #include "./Decoradores/LecheDecorador.h"
@@ -67,6 +71,18 @@ Bebida* agregarDecorador(Bebida* bebida, int opcion) {
     }
 }
 
+std::string obtenerNombreCondimento(int opcion) {
+    switch(opcion) {
+        case 1: return "leche entera";
+        case 2: return "leche light";
+        case 3: return "leche deslactosada";
+        case 4: return "leche deslactosada light";
+        case 5: return "mocha";
+        case 6: return "leche soya";
+        case 7: return "crema";
+        default: return "";
+    }
+}
 
 int main(){
     int opcionBebida, opcionDecorador;
@@ -98,10 +114,47 @@ int main(){
             std::cin >> opcionDecorador;
             
             if(opcionDecorador != 0) {
-                miBebida = agregarDecorador(miBebida, opcionDecorador);
-                std::cout << "\nActualizado: " << miBebida->getDescripcion() << std::endl;
-                std::cout << "Precio actual: $" << std::fixed << std::setprecision(2) 
-                          << miBebida->getCosto() << std::endl;
+                std::string descripcionTemp = miBebida->getDescripcion();
+                
+                // Verificar si el condimento a agregar ya existe antes de añadirlo
+                bool esRepetido = false;
+                if (descripcionTemp.find(',') != std::string::npos) {
+                    // Obtener el nombre del condimento que se va a agregar
+                    std::string nuevoCondimento = obtenerNombreCondimento(opcionDecorador);
+                    
+                    // Buscar si ya existe
+                    std::string descripcionCondimentos = descripcionTemp.substr(descripcionTemp.find(',') + 1);
+                    std::stringstream ss(descripcionCondimentos);
+                    std::string condimento;
+                    
+                    while (std::getline(ss, condimento, ',')) {
+                        condimento.erase(0, condimento.find_first_not_of(" "));
+                        condimento.erase(condimento.find_last_not_of(" ") + 1);
+                        
+                        if (condimento == nuevoCondimento) {
+                            esRepetido = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (esRepetido) {
+                    std::cout << "\n¡Este condimento ya está en la bebida!" << std::endl;
+                    std::cout << "Descripción actual: " << miBebida->getDescripcion() << std::endl;
+                    std::cout << "Precio actual: $" << std::fixed << std::setprecision(2) 
+                              << miBebida->getCosto() << std::endl;
+                } else {
+                    // Agregar el decorador solo si no es repetido
+                    miBebida = agregarDecorador(miBebida, opcionDecorador);
+                    
+                    if(miBebida->getDescripcion() == descripcionTemp){
+                        std::cout << "\nOpción no válida. Por favor intente de nuevo." << std::endl;
+                    } else {
+                        std::cout << "\nActualizado: " << miBebida->getDescripcion() << std::endl;
+                        std::cout << "Precio actual: $" << std::fixed << std::setprecision(2) 
+                                  << miBebida->getCosto() << std::endl;
+                    }
+                }
             }
         } while(opcionDecorador != 0);
 
